@@ -1,11 +1,13 @@
-#include "float_defs.h"
-#include "float_utils.h"
 #include <assert.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+
+#include "float_defs.h"
+#include "float_utils.h"
+#include "recip.h"
 
 void makeTTable(__uint64_t *table) {
   int i;
@@ -91,7 +93,7 @@ void makeQTable(__uint64_t *table, __uint64_t *recipTable,
   }   // end of id
 }
 
-void makeATable(unsigned *table, __uint64_t *qTable) {
+void makeATable(__uint8_t *table, __uint64_t *qTable) {
   for (int i = 0; i < RECIP_TABLE_SIZE; i++) {
     int qTableIdx = ((1ull << qTableBit) / 2) + (i * (1ull << qTableBit));
     table[i] = qTable[qTableIdx];
@@ -99,7 +101,7 @@ void makeATable(unsigned *table, __uint64_t *qTable) {
 }
 
 unsigned __int128 three_table_procedure(unsigned __int128 x, __uint64_t *T_Table,
-                             __uint64_t *S_Table, unsigned *A_Table) {
+                             __uint64_t *S_Table, __uint8_t *A_Table) {
   // Extract indices of x
   __uint32_t x1__8  = ((1ull << highf) - 1) & (((__uint64_t)x) >> lowu);;
   __uint32_t x9__20 = ((1ull << qTableBit) - 1) & (((__uint64_t)x) >> (lowu - qTableBit));
@@ -133,7 +135,7 @@ double calculate_ytrue(unsigned __int128 x) {
 }
 
 double calculate_ytest(unsigned __int128 x, __uint64_t *recipTable,
-                       __uint64_t *linearTable, unsigned *aTable) {
+                       __uint64_t *linearTable, __uint8_t *aTable) {
   // 3-table implementation
   double three_table_result =
       mantissa_to_double(three_table_procedure(x, recipTable, linearTable, aTable));

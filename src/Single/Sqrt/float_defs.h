@@ -17,8 +17,7 @@ typedef struct {
 
 #define RECIP_TABLE_SIZE 256 // 512 = 2 ^ 9// (256) // 256 = 2 ^ 8
 #define SQRT_TABLE_SIZE 512
-#define QTableSize 1048576 // 262144 //262144 //8192 //16384 //8192 //4096 = (2 ^ 4) * 256
-#define ATableSize 256
+#define QTableSize 524288 //131072 //262144 //8192 //16384 //8192 //4096 = (2 ^ 4) * 256
 #define oneOverSize 0.00390625 // increment between sample points 1/256 = 0.00390625
 // 1/512 = 0.001953125
 // 1/1024 = 0.0009765625
@@ -35,13 +34,12 @@ typedef struct {
 // 1.0 = 10(fracBits-1)'s0 0.999 = 01(fracBits-1)'s0
 #define fracBits FRACBITS
 // highf and lowu only work for values between [1.0,2.0)
-#define highf 8
-#define lowu ((fracBits) - highf)
+#define highf 8 // 9?
+#define lowu (unsigned long long)((fracBits) - highf)
 #define fstExp (1ull<<fracBits)
 #define savedBits SB
 
-#define qTableBit 12
-#define aTableBit 8
+#define qTableBit 10 //10
 #define fracBitsTable FRACTTABLE
 #define lowuTable (fracBitsTable - highf)
 // SEEEEEEEEffffffffuuuuuuuuuuuuuuuu

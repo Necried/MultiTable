@@ -1,49 +1,43 @@
+#include "sqrt.h"
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/resource.h> // Check available stack space
 
 #include "dtof_rounding.h"
 #include "float_defs.h"
 #include "float_utils.h"
 
-#include "recip.h"
+#include "sqrt.h"
 
 // statistic
 char exc_bits[6], oexc_bits[6]; // *<>nz
 void clear_exc_bits() { strcpy(exc_bits, "....."); }
-
 void clear_oexc_bits() { strcpy(oexc_bits, "....."); }
-
 void set_exc_ninf() {
   exc_bits[0] = '<';
   oexc_bits[0] = '<';
 }
-
 void set_exc_pinf() {
   exc_bits[1] = '>';
   oexc_bits[1] = '>';
 }
-
 void set_exc_nan() {
   exc_bits[2] = 'n';
   oexc_bits[2] = 'n';
 }
-
 void set_exc_zerr() {
   exc_bits[3] = 'z';
   oexc_bits[3] = 'z';
 }
-
 void set_exc_bad() {
   exc_bits[4] = '*';
   oexc_bits[4] = '*';
 }
 
-void test(int exp, int fromtable, int tableend, __uint64_t *reciptable,
-          __uint64_t *linearTable, __uint8_t *aTable) {
+void test(int exp, int fromtable, int tableend, __uint64_t *T_Table,
+         __uint64_t *S_Table, __uint8_t *A_Table) {
   // define variant
   int id, maxid, minid;
   __int64_t ncorrnd, omaxncorrnd, ominncorrnd, ontests, ntests, oontests,
@@ -136,7 +130,7 @@ void test(int exp, int fromtable, int tableend, __uint64_t *reciptable,
     n_ulp_n10 = 0;
     n_ulp_n10down = 0;
     ontests = 0;
-    // go throught table fromtable to tableend
+// go throught table fromtable to tableend
 #ifdef TABLE
     printf("id  sgn  exp <>nz*  == x == == frac == ========== ytest =========  "
            " ========= ytrue ========     ulps      iulps    pcr\n");
@@ -158,27 +152,25 @@ void test(int exp, int fromtable, int tableend, __uint64_t *reciptable,
         at = k * (1l << lowu);
 
         // test
-        unsigned __int128 x = (1ull << (fracBits)) + i;
+        unsigned __int128 x = k < (SQRT_TABLE_SIZE / 2)
+                                  ? (1ull << (fracBits)) + i
+                                  : (1ull << (fracBits + 1)) + i;
 
         ytrue.d = calculate_ytrue(x);
-        ytest.d = calculate_ytest(x, reciptable, linearTable, aTable);
+        ytest.d = calculate_ytest(x, T_Table, S_Table, A_Table);
         double ulperr;
 #ifdef SINGLE
 
 #ifdef RU
-        ytest.d = ((double)dtof_pinf(ytest.d));
         ytrue.d = ((double)dtof_pinf(ytrue.d));
 #endif
 #ifdef RD
-        ytest.d = ((double)dtof_ninf(ytest.d));
         ytrue.d = ((double)dtof_ninf(ytrue.d));
 #endif
 #ifdef RZ
-        ytest.d = ((double)dtof_zero(ytest.d));
         ytrue.d = ((double)dtof_zero(ytrue.d));
 #endif
 #ifdef RN
-        ytest.d = ((double)dtof_nearest(ytest.d));
         ytrue.d = ((double)dtof_nearest(ytrue.d));
 #endif
         ulperr = (ytest.d - ytrue.d) / (double)(ulp_s((float)ytrue.d));
@@ -265,17 +257,17 @@ void test(int exp, int fromtable, int tableend, __uint64_t *reciptable,
           ominx = x;
           minid = id;
         }
-
+        // end i
       }
 
         // print statistic for each table
 
 #ifdef TABLE
-      __int64_t maxiulperr = maxytest.i - maxytrue.i;
+      __uint64_t maxiulperr = maxytest.i - maxytrue.i;
       printf("%3d %2d %5d %5s %10.2e %010lX %10.2e %016lX %10.2e %016lX "
              "%10.2e %10.2e %6.2f\n",
              id, 0, 0, "     ",
-             mantissa_to_double(maxx), (__int64_t)maxx, maxytest.d,
+             mantissa_to_double(maxx), (__uint64_t)maxx, maxytest.d,
              maxytest.ull, maxytrue.d, maxytrue.ull, maxulperr,
              (double)maxiulperr, 100.0 * ncorrnd / ntests);
 #endif
@@ -389,27 +381,22 @@ int main(int argc, const char *argv[]) {
 
   // printf("Test rounding %s \n",rounding);
 
-  __uint64_t recipTable[RECIP_TABLE_SIZE];
-  __uint64_t linearTable[RECIP_TABLE_SIZE];
-  __uint64_t *qTable;
-  __uint8_t aTable[ATableSize];
-  FILE *fptr;
+  __uint64_t T_Table[SQRT_TABLE_SIZE];
+  __uint64_t S_Table[SQRT_TABLE_SIZE];
+  __uint64_t Q_Table[QTableSize]; 
+  __uint8_t A_Table[SQRT_TABLE_SIZE];
 
-  // Allocate heap space for qTable
-  qTable = malloc(sizeof(__uint64_t) * QTableSize);
 
-  makeTTable(recipTable);
-  makeSTable(linearTable, recipTable);
-  makeQTable(qTable, recipTable, linearTable);
-  makeATable(aTable, qTable);
+  makeTTable(T_Table);
+  makeSTable(S_Table, T_Table);
+  makeQTable(Q_Table, T_Table, S_Table);
+  makeATable(A_Table, Q_Table);
 
-  test(0, 0, 255 /*RECIP_TABLE_SIZE-1*/, recipTable, linearTable, aTable);
+  test(0, 0, SQRT_TABLE_SIZE - 1, T_Table, S_Table, A_Table);
 
   printf("Testing sign 1 bits, exp 8 bits, significand %d bits \n", fracBits);
-  printf("Testing reciprocal table : %d bits table, size %d \n", fracBitsTable,
-         RECIP_TABLE_SIZE);
-  printf("Testing input(highf) %d bits \n", highf);
-  printf("Testing lowu %d bits \n", lowu);
+  printf("Testing sqrt table (t table) : %d bits table, size %d \n",
+         fracBitsTable, SQRT_TABLE_SIZE);
 
 #ifdef SINGLE
   printf("Testing single precision \n");
@@ -429,7 +416,5 @@ int main(int argc, const char *argv[]) {
 #else
   printf("Testing double precision \n");
 #endif
-
-  free(qTable);
   return 0;
 }
