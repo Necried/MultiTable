@@ -10,7 +10,7 @@ output: test
 	./a
 
 test: test.c
-	$(CC) -g -o a sqrt.c test.c float_utils.c $(CFLAGS) -DGENQTABLE $(OBJS)
+	$(CC) -g -o a rsqrt.c test.c float_utils.c $(CFLAGS) -DGENQTABLE $(OBJS)
 
 makedtof:
 	$(CC) -c -frounding-math dtof_nearest.c dtof_zero.c dtof_pinf.c dtof_ninf.c
