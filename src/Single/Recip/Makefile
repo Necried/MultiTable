@@ -1,17 +1,24 @@
-CC=clang
-CFLAGS=-DRN -DSINGLE -DTABLE -DFTABLE=makePosRecipTable -DFLINEARTABLE=makelinearTable -DFQTABLE=makeqTable -DFLIE=file_name \
-       -DFRACTTABLE=25 -DFRACBITS=31 -lm -g
-OBJS=dtof_nearest.o dtof_zero.o dtof_pinf.o dtof_ninf.o
+CC      = clang
+CFLAGS  = -DRN -DSINGLE -DTABLE -DFTABLE=makePosRecipTable \
+          -DFLINEARTABLE=makelinearTable -DFQTABLE=makeqTable -DFLIE=file_name \
+          -DFRACTTABLE=25 -DFRACBITS=31 -g
+LDFLAGS = -lm
+
+OBJS = dtof_nearest.o dtof_zero.o dtof_pinf.o dtof_ninf.o test.o recip.o float_utils.o
+TARGET  = test
 
 .PHONY: clean
 
 all: makedtof output clean
 
-output: test
-	./a
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
-test: test.c
-	$(CC) -g -o a recip.c test.c float_utils.c $(CFLAGS) -DGENQTABLE $(OBJS)
+output: $(TARGET)
+	./$(TARGET)
+
+$(TARGET): $(OBJS)
+	$(CC) -o $@ $^ $(LDFLAGS)
 
 makedtof:
 	$(CC) -c -frounding-math dtof_nearest.c dtof_zero.c dtof_pinf.c dtof_ninf.c

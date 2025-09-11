@@ -42,8 +42,8 @@ void set_exc_bad() {
   oexc_bits[4] = '*';
 }
 
-void test(int exp, int fromtable, int tableend, __uint64_t *reciptable,
-          __uint64_t *linearTable, __uint8_t *aTable) {
+void test(int exp, int fromtable, int tableend, __uint64_t *T_Table,
+          __uint64_t *S_Table, __uint8_t *A_Table) {
   // define variant
   int id, maxid, minid;
   __int64_t ncorrnd, omaxncorrnd, ominncorrnd, ontests, ntests, oontests,
@@ -161,7 +161,7 @@ void test(int exp, int fromtable, int tableend, __uint64_t *reciptable,
         unsigned __int128 x = (1ull << (fracBits)) + i;
 
         ytrue.d = calculate_ytrue(x);
-        ytest.d = calculate_ytest(x, reciptable, linearTable, aTable);
+        ytest.d = calculate_ytest(x, T_Table, S_Table, A_Table);
         double ulperr;
 #ifdef SINGLE
 
@@ -389,21 +389,21 @@ int main(int argc, const char *argv[]) {
 
   // printf("Test rounding %s \n",rounding);
 
-  __uint64_t recipTable[RECIP_TABLE_SIZE];
-  __uint64_t linearTable[RECIP_TABLE_SIZE];
+  __uint64_t T_Table[RECIP_TABLE_SIZE];
+  __uint64_t S_Table[RECIP_TABLE_SIZE];
   __uint64_t *qTable;
-  __uint8_t aTable[ATableSize];
+  __uint8_t A_Table[ATableSize];
   FILE *fptr;
 
   // Allocate heap space for qTable
   qTable = malloc(sizeof(__uint64_t) * QTableSize);
 
-  makeTTable(recipTable);
-  makeSTable(linearTable, recipTable);
-  makeQTable(qTable, recipTable, linearTable);
-  makeATable(aTable, qTable);
+  makeTTable(T_Table);
+  makeSTable(S_Table, T_Table);
+  makeQTable(qTable, T_Table, S_Table);
+  makeATable(A_Table, qTable);
 
-  test(0, 0, 255 /*RECIP_TABLE_SIZE-1*/, recipTable, linearTable, aTable);
+  test(0, 0, 255 /*RECIP_TABLE_SIZE-1*/, T_Table, S_Table, A_Table);
 
   printf("Testing sign 1 bits, exp 8 bits, significand %d bits \n", fracBits);
   printf("Testing reciprocal table : %d bits table, size %d \n", fracBitsTable,
