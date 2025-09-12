@@ -1,4 +1,4 @@
-CC      = clang
+CC      = gcc
 CFLAGS  = -Wall -Wextra -g \
            -DTABLE -DTESTCOUNT=8388608 -DFRACTTABLE=25 -DFRACBITS=58 \
 					 -DDEBUG \
