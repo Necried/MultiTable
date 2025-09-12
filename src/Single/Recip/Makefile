@@ -3,28 +3,45 @@ CFLAGS  = -DRN -DSINGLE -DTABLE -DFTABLE=makePosRecipTable \
           -DFLINEARTABLE=makelinearTable -DFQTABLE=makeqTable -DFLIE=file_name \
           -DFRACTTABLE=25 -DFRACBITS=31 -g
 LDFLAGS = -lm
+AR      = ar
+ARFLAGS = rcs
 
-OBJS = dtof_nearest.o dtof_zero.o dtof_pinf.o dtof_ninf.o test.o recip.o float_utils.o
+# Objects for the library (exclude test.o!)
+LIBOBJS = dtof_nearest.o dtof_zero.o dtof_pinf.o dtof_ninf.o recip.o float_utils.o
+LIB     = librecip_sp.a
+
+# Objects used only for Single/Recip's own testing
+TESTOBJS = test.o
+
 TARGET  = test
 
-.PHONY: clean
+.PHONY: all lib test run clean
 
-all: makedtof output clean
+# Default target: just build the library
+all: lib test run clean
 
+# Build static library
+lib: $(LIB)
+
+$(LIB): $(LIBOBJS)
+	$(AR) $(ARFLAGS) $@ $^
+
+# Optional: build local test program (not included in the library!)
+test: $(LIBOBJS) $(TESTOBJS)
+	$(CC) -o $(TARGET) $^ $(LDFLAGS)
+
+# Compile sources into .o files
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-output: $(TARGET)
+# Run local test
+run: test
 	./$(TARGET)
 
-$(TARGET): $(OBJS)
-	$(CC) -o $@ $^ $(LDFLAGS)
-
-makedtof:
-	$(CC) -c -frounding-math dtof_nearest.c dtof_zero.c dtof_pinf.c dtof_ninf.c
-
+# Helper: log date
 getdate:
 	echo "date $$(date "+%Y-%m-%d")" > test.log
 
+# Clean everything
 clean:
-	rm -f $(OBJS) *.o a
+	rm -f $(LIBOBJS) $(TESTOBJS) $(LIB) $(TARGET)

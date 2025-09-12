@@ -123,7 +123,9 @@ unsigned __int128 three_table_procedure(unsigned __int128 x, __uint64_t *T_Table
   
   // The base shift amount of Q is 22, but we take into account extra precision
   // introduced by fracBits. We subtract by 23 (the single precision significand)
-  __uint32_t Q = (z * a) >> (22 - (fracBits - 23));
+  __uint32_t Q = fracBits - 23 >= 0 ?
+    (z * a) >> (22 - (fracBits - 23)) :
+    (z * a) << ((fracBits - 23) - 22);
   __uint32_t L = ((__uint64_t)s * x9__23) >> lowu;
   __uint32_t y = t - L - Q;
 
