@@ -3,8 +3,10 @@
 SINGLE_DIRS := src/Single/Recip src/Single/Sqrt src/Single/RSqrt
 DOUBLE_DIRS := src/Double/Recip src/Double/Sqrt src/Double/RSqrt
 
-# Default: build and run tests for both
-all: test
+all: setup test clean
+
+setup:
+	mkdir log
 
 single:
 	@for dir in $(SINGLE_DIRS); do \
@@ -18,10 +20,13 @@ double: single
 		$(MAKE) -C $$dir all || exit $$?; \
 	done
 
-test: single double
+test: setup single double
 
 clean:
 	@for dir in $(SINGLE_DIRS) $(DOUBLE_DIRS); do \
 		echo "===> Cleaning $$dir"; \
 		$(MAKE) -C $$dir clean || exit $$?; \
 	done
+	
+cleanlog:
+	rm -rf log

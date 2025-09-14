@@ -21,10 +21,11 @@
 double calculate_ytest_dp(unsigned __int128 b, __uint64_t *recipTable,
                        __uint64_t *linearTable, __uint8_t *aTable) {
   const unsigned __int128 leading_one = 1ull << fracBits;
+  const __uint32_t FRACBITS_SP = 31;
 
   // The table lookup value is y0
-  unsigned __int128 b_aligned = b >> (fracBits-31);
-  unsigned __int128 y0 = three_table_procedure(b_aligned, recipTable, linearTable, aTable) << (fracBits-31);
+  unsigned __int128 b_aligned = b >> (fracBits-FRACBITS_SP);
+  unsigned __int128 y0 = three_table_procedure(b_aligned, recipTable, linearTable, aTable) << (fracBits-FRACBITS_SP);
 
   // First we compute the residual e, and residual_squared e^2
   // Extra step: We do 1 - b*y0 if b*y0 < 1, else do b*y0 - 1

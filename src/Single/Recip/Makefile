@@ -1,7 +1,5 @@
-CC      = gcc
-CFLAGS  = -DRN -DSINGLE -DTABLE -DFTABLE=makePosRecipTable \
-          -DFLINEARTABLE=makelinearTable -DFQTABLE=makeqTable -DFLIE=file_name \
-          -DFRACTTABLE=25 -DFRACBITS=31 -g
+CC      = clang
+CFLAGS  = -DRN -DSINGLE -DTABLE -DFRACTTABLE=25 -DFRACBITS=31 -g
 LDFLAGS = -lm
 AR      = ar
 ARFLAGS = rcs

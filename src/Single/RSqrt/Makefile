@@ -1,22 +1,38 @@
-CC=clang
-CFLAGS=-DRN -DSINGLE -DTABLE -DFRACTTABLE=25 -DFRACBITS=27 -lm -g
-OBJS=dtof_nearest.o dtof_zero.o dtof_pinf.o dtof_ninf.o
+CC      = clang
+CFLAGS  = -DRN -DSINGLE -DTABLE -DFRACTTABLE=25 -DFRACBITS=27 -g
+LDFLAGS = -lm
+AR      = ar
+ARFLAGS = rcs
 
-.PHONY: clean
+LIBOBJS = dtof_nearest.o dtof_zero.o dtof_pinf.o dtof_ninf.o rsqrt.o float_utils.o
+LIB     = librsqrt_sp.a
 
-all: makedtof output clean
+TESTOBJS = test.o
 
-output: test
-	./a
+TARGET  = test
 
-test: test.c
-	$(CC) -g -o a rsqrt.c test.c float_utils.c $(CFLAGS) -DGENQTABLE $(OBJS)
+.PHONY: all lib test run clean
 
-makedtof:
-	$(CC) -c -frounding-math dtof_nearest.c dtof_zero.c dtof_pinf.c dtof_ninf.c
+all: lib test run clean
+
+# Build static library
+lib: $(LIB)
+
+$(LIB): $(LIBOBJS)
+	$(AR) $(ARFLAGS) $@ $^
+
+test: $(LIBOBJS) $(TESTOBJS)
+	$(CC) -o $(TARGET) $^ $(LDFLAGS)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Run local test
+run: test
+	./$(TARGET)
 
 getdate:
 	echo "date $$(date "+%Y-%m-%d")" > test.log
 
 clean:
-	rm -f $(OBJS) *.o a
+	rm -f $(LIBOBJS) $(TESTOBJS) $(LIB) $(TARGET)

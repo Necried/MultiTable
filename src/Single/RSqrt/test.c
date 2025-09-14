@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "dtof_rounding.h"
 #include "float_defs.h"
@@ -37,7 +38,7 @@ void set_exc_bad() {
 }
 
 void test(int exp, int fromtable, int tableend, __uint64_t *T_Table,
-         __uint64_t *S_Table, __uint8_t *A_Table) {
+         __uint64_t *S_Table, __uint8_t *A_Table, FILE *fptr) {
   // define variant
   int id, maxid, minid;
   __int64_t ncorrnd, omaxncorrnd, ominncorrnd, ontests, ntests, oontests,
@@ -108,11 +109,11 @@ void test(int exp, int fromtable, int tableend, __uint64_t *T_Table,
   unsigned __int128 ominx = 0;
 
   // print header
-  printf("go through every significand from table %d to table %d \n", fromtable,
+  fprintf(fptr,"go through every significand from table %d to table %d \n", fromtable,
          tableend);
-  printf("go through exponent 0 to exponent %d\n", exp);
-  printf("increment 1 bit every line\n");
-  printf("\n");
+  fprintf(fptr,"go through exponent 0 to exponent %d\n", exp);
+  fprintf(fptr,"increment 1 bit every line\n");
+  fprintf(fptr,"\n");
 
   // go through exponent from 0 to exp
   for (int j = 0; j <= exp; j++) {
@@ -132,7 +133,7 @@ void test(int exp, int fromtable, int tableend, __uint64_t *T_Table,
     ontests = 0;
 // go throught table fromtable to tableend
 #ifdef TABLE
-    printf("id  sgn  exp <>nz*  == x == == frac == ========== ytest =========  "
+    fprintf(fptr,"id  sgn  exp <>nz*  == x == == frac == ========== ytest =========  "
            " ========= ytrue ========     ulps      iulps    pcr\n");
 #endif
     for (int k = fromtable; k <= tableend; k++) {
@@ -264,7 +265,7 @@ void test(int exp, int fromtable, int tableend, __uint64_t *T_Table,
 
 #ifdef TABLE
       __uint64_t maxiulperr = maxytest.i - maxytrue.i;
-      printf("%3d %2d %5d %5s %10.2e %010lX %10.2e %016lX %10.2e %016lX "
+      fprintf(fptr,"%3d %2d %5d %5s %10.2e %010lX %10.2e %016lX %10.2e %016lX "
              "%10.2e %10.2e %6.2f\n",
              id, 0, 0, "     ",
              mantissa_to_double(maxx), (__uint64_t)maxx, maxytest.d,
@@ -283,138 +284,147 @@ void test(int exp, int fromtable, int tableend, __uint64_t *T_Table,
     }
 
     // print statistic for each exp
-    printf("\n");
-    printf("overall of exponent %d\n", j);
-    printf("id  sgn  exp <>NZ*  == x == == frac == ========== ytest =========  "
+    fprintf(fptr,"\n");
+    fprintf(fptr,"overall of exponent %d\n", j);
+    fprintf(fptr,"id  sgn  exp <>NZ*  == x == == frac == ========== ytest =========  "
            " ========= ytrue ========     ulps      iulps    pcr\n");
-    printf("Max \n");
+    fprintf(fptr,"Max \n");
 
     __int64_t omaxiulperr = omaxytest.i - omaxytrue.i;
-    printf("%3d %2d %5d %5s %10.2e %08lX %10.2e %016lX %10.2e %016lX %10.2e "
+    fprintf(fptr,"%3d %2d %5d %5s %10.2e %08lX %10.2e %016lX %10.2e %016lX %10.2e "
            "%10.2e %6.2f\n",
            maxid, 0, 0, "     ",
            mantissa_to_double(omaxx), (__int64_t)omaxx, omaxytest.d,
            omaxytest.ull, omaxytrue.d, omaxytrue.ull, omaxulperr,
            (double)omaxiulperr, 100.0 * omaxncorrnd / ntests);
 
-    printf("Min \n");
+    fprintf(fptr,"Min \n");
 
     __int64_t ominiulperr = ominytest.i - ominytrue.i;
-    printf("%3d %2d %5d %5s %10.2e %08lX %10.2e %016lX %10.2e %016lX %10.2e "
+    fprintf(fptr,"%3d %2d %5d %5s %10.2e %08lX %10.2e %016lX %10.2e %016lX %10.2e "
            "%10.2e %6.2f\n",
            minid, 0, 0, "     ",
            mantissa_to_double(ominx), (__int64_t)ominx, ominytest.d,
            ominytest.ull, ominytrue.d, ominytrue.ull, ominulperr,
            (double)ominiulperr, 100.0 * ominncorrnd / ntests);
-    printf("\n");
+    fprintf(fptr,"\n");
 
-    printf("\n");
-    printf("Histogram of exponent %d\n", j);
-    printf("Number of test %lu\n", ontests);
-    printf("===neg to pos===     ===count===  =====absolute===== \n");
-    printf("[-inf,-10) %6.2f%%  %10lu\n", 100.0 * n_ulp_n10down / ontests,
+    fprintf(fptr,"\n");
+    fprintf(fptr,"Histogram of exponent %d\n", j);
+    fprintf(fptr,"Number of test %lu\n", ontests);
+    fprintf(fptr,"===neg to pos===     ===count===  =====absolute===== \n");
+    fprintf(fptr,"[-inf,-10) %6.2f%%  %10lu\n", 100.0 * n_ulp_n10down / ontests,
            n_ulp_n10down);
-    printf("  [-10,-5) %6.2f%%  %10lu\n", 100.0 * n_ulp_n10 / ontests,
+    fprintf(fptr,"  [-10,-5) %6.2f%%  %10lu\n", 100.0 * n_ulp_n10 / ontests,
            n_ulp_n10);
-    printf("   [-5,-2) %6.2f%%  %10lu\n", 100.0 * n_ulp_n5 / ontests,
+    fprintf(fptr,"   [-5,-2) %6.2f%%  %10lu\n", 100.0 * n_ulp_n5 / ontests,
            n_ulp_n5);
-    printf("   [-2,-1) %6.2f%%  %10lu\n", 100.0 * n_ulp_n2 / ontests,
+    fprintf(fptr,"   [-2,-1) %6.2f%%  %10lu\n", 100.0 * n_ulp_n2 / ontests,
            n_ulp_n2);
-    printf(" [-1,-0.5) %6.2f%%  %10lu\n", 100.0 * n_ulp_n1 / ontests,
+    fprintf(fptr," [-1,-0.5) %6.2f%%  %10lu\n", 100.0 * n_ulp_n1 / ontests,
            n_ulp_n1);
-    printf("  (-0.5,0] %6.2f%%  %10lu\n", 100.0 * n_ulp_n05 / ontests,
+    fprintf(fptr,"  (-0.5,0] %6.2f%%  %10lu\n", 100.0 * n_ulp_n05 / ontests,
            n_ulp_n05);
-    printf("   (0,0.5] %6.2f%%  %10lu     [0,0.5] %6.2f%%\n",
+    fprintf(fptr,"   (0,0.5] %6.2f%%  %10lu     [0,0.5] %6.2f%%\n",
            100.0 * n_ulp_05 / ontests, n_ulp_05,
            100.0 * (n_ulp_05 + n_ulp_n05) / ontests);
-    printf("   (0.5,1] %6.2f%%  %10lu     (0.5,1] %6.2f%%\n",
+    fprintf(fptr,"   (0.5,1] %6.2f%%  %10lu     (0.5,1] %6.2f%%\n",
            100.0 * n_ulp_1 / ontests, n_ulp_1,
            100.0 * (n_ulp_1 + n_ulp_n1) / ontests);
-    printf("     (1,2] %6.2f%%  %10lu       (1,2] %6.2f%%\n",
+    fprintf(fptr,"     (1,2] %6.2f%%  %10lu       (1,2] %6.2f%%\n",
            100.0 * n_ulp_2 / ontests, n_ulp_2,
            100.0 * (n_ulp_2 + n_ulp_n2) / ontests);
-    printf("     (2,5] %6.2f%%  %10lu       (2,5] %6.2f%%\n",
+    fprintf(fptr,"     (2,5] %6.2f%%  %10lu       (2,5] %6.2f%%\n",
            100.0 * n_ulp_5 / ontests, n_ulp_5,
            100.0 * (n_ulp_5 + n_ulp_n5) / ontests);
-    printf("    (5,10] %6.2f%%  %10lu      (5,10] %6.2f%%\n",
+    fprintf(fptr,"    (5,10] %6.2f%%  %10lu      (5,10] %6.2f%%\n",
            100.0 * n_ulp_10 / ontests, n_ulp_10,
            100.0 * (n_ulp_10 + n_ulp_n10) / ontests);
-    printf("  (10,inf] %6.2f%%  %10lu    (10,inf] %6.2f%%\n",
+    fprintf(fptr,"  (10,inf] %6.2f%%  %10lu    (10,inf] %6.2f%%\n",
            100.0 * n_ulp_10up / ontests, n_ulp_10up,
            100.0 * (n_ulp_10up + n_ulp_n10down) / ontests);
-    printf("\n");
+    fprintf(fptr,"\n");
     // end j
   }
 
   if (exp > 0) {
-    printf("\n");
-    printf("Histogram of exponent 0 to exponent %d\n", exp);
-    printf("Number of test %lu\n", oontests);
-    printf("****neg to pos****     *****absolute*****\n");
-    printf("[-inf,-10) %6.2f%%\n", 100.0 * on_ulp_n10down / oontests);
-    printf("  [-10,-5) %6.2f%%\n", 100.0 * on_ulp_n10 / oontests);
-    printf("   [-5,-2) %6.2f%%\n", 100.0 * on_ulp_n5 / oontests);
-    printf("   [-2,-1) %6.2f%%\n", 100.0 * on_ulp_n2 / oontests);
-    printf(" [-1,-0.5) %6.2f%%\n", 100.0 * on_ulp_n1 / oontests);
-    printf("  (-0.5,0] %6.2f%%\n", 100.0 * on_ulp_n05 / oontests);
-    printf("   (0,0.5] %6.2f%%  [0,0.5] %6.2f%%\n",
+    fprintf(fptr,"\n");
+    fprintf(fptr,"Histogram of exponent 0 to exponent %d\n", exp);
+    fprintf(fptr,"Number of test %lu\n", oontests);
+    fprintf(fptr,"****neg to pos****     *****absolute*****\n");
+    fprintf(fptr,"[-inf,-10) %6.2f%%\n", 100.0 * on_ulp_n10down / oontests);
+    fprintf(fptr,"  [-10,-5) %6.2f%%\n", 100.0 * on_ulp_n10 / oontests);
+    fprintf(fptr,"   [-5,-2) %6.2f%%\n", 100.0 * on_ulp_n5 / oontests);
+    fprintf(fptr,"   [-2,-1) %6.2f%%\n", 100.0 * on_ulp_n2 / oontests);
+    fprintf(fptr," [-1,-0.5) %6.2f%%\n", 100.0 * on_ulp_n1 / oontests);
+    fprintf(fptr,"  (-0.5,0] %6.2f%%\n", 100.0 * on_ulp_n05 / oontests);
+    fprintf(fptr,"   (0,0.5] %6.2f%%  [0,0.5] %6.2f%%\n",
            100.0 * on_ulp_05 / oontests,
            100.0 * (on_ulp_05 + on_ulp_n05) / oontests);
-    printf("   (0.5,1] %6.2f%%  (0.5,1] %6.2f%%\n", 100.0 * on_ulp_1 / oontests,
+    fprintf(fptr,"   (0.5,1] %6.2f%%  (0.5,1] %6.2f%%\n", 100.0 * on_ulp_1 / oontests,
            100.0 * (on_ulp_1 + on_ulp_n1) / oontests);
-    printf("     (1,2] %6.2f%%    (1,2] %6.2f%%\n", 100.0 * on_ulp_2 / oontests,
+    fprintf(fptr,"     (1,2] %6.2f%%    (1,2] %6.2f%%\n", 100.0 * on_ulp_2 / oontests,
            100.0 * (on_ulp_2 + on_ulp_n2) / oontests);
-    printf("     (2,5] %6.2f%%    (2,5] %6.2f%%\n", 100.0 * on_ulp_5 / oontests,
+    fprintf(fptr,"     (2,5] %6.2f%%    (2,5] %6.2f%%\n", 100.0 * on_ulp_5 / oontests,
            100.0 * (on_ulp_5 + on_ulp_n5) / oontests);
-    printf("    (5,10] %6.2f%%   (5,10] %6.2f%%\n",
+    fprintf(fptr,"    (5,10] %6.2f%%   (5,10] %6.2f%%\n",
            100.0 * on_ulp_10 / oontests,
            100.0 * (on_ulp_10 + on_ulp_n10) / oontests);
-    printf("  (10,inf] %6.2f%% (10,inf] %6.2f%%\n",
+    fprintf(fptr,"  (10,inf] %6.2f%% (10,inf] %6.2f%%\n",
            100.0 * on_ulp_10up / oontests,
            100.0 * (on_ulp_10up + on_ulp_n10down) / oontests);
-    printf("\n");
+    fprintf(fptr,"\n");
   }
+
+  printf("\n===================================================\n");
+  printf("RSQRT SINGLE PRECISION LOG REPORT:\n");
+  printf("Results for rsqrt single precision recorded in:\n\tlog/rsqrt_sp.log\n");
+  printf("Ulp error interval:\n\t [%.5f, %.5f]\n", ominulperr, omaxulperr);
+  printf("===================================================\n\n");
+  sleep(2);
   // end
 }
 
 int main(int argc, const char *argv[]) {
 
-  // printf("Test rounding %s \n",rounding);
+  // fprintf(fptr,"Test rounding %s \n",rounding);
 
   __uint64_t T_Table[RSQRT_TABLE_SIZE];
   __uint64_t S_Table[RSQRT_TABLE_SIZE];
   __uint64_t Q_Table[QTableSize]; 
   __uint8_t A_Table[RSQRT_TABLE_SIZE];
+  FILE *fptr;
 
+  fptr = fopen("../../../log/rsqrt_sp.log", "w");
 
   makeTTable(T_Table);
   makeSTable(S_Table, T_Table);
   makeQTable(Q_Table, T_Table, S_Table);
   makeATable(A_Table, Q_Table);
 
-  test(0, 0, RSQRT_TABLE_SIZE - 1, T_Table, S_Table, A_Table);
+  test(0, 0, RSQRT_TABLE_SIZE - 1, T_Table, S_Table, A_Table, fptr);
 
-  printf("Testing sign 1 bits, exp 8 bits, significand %d bits \n", fracBits);
-  printf("Testing sqrt table (t table) : %d bits table, size %d \n",
+  fprintf(fptr,"Testing sign 1 bits, exp 8 bits, significand %d bits \n", fracBits);
+  fprintf(fptr,"Testing sqrt table (t table) : %d bits table, size %d \n",
          fracBitsTable, RSQRT_TABLE_SIZE);
 
 #ifdef SINGLE
-  printf("Testing single precision \n");
+  fprintf(fptr,"Testing single precision \n");
 #ifdef RU
-  printf("Testing round to positive infinity \n");
+  fprintf(fptr,"Testing round to positive infinity \n");
 #endif
 #ifdef RD
-  printf("Testing round to negative infinity \n");
+  fprintf(fptr,"Testing round to negative infinity \n");
 #endif
 #ifdef RZ
-  printf("Testing round to zero \n");
+  fprintf(fptr,"Testing round to zero \n");
 #endif
 #ifdef RN
-  printf("Testing round to nearest even \n");
+  fprintf(fptr,"Testing round to nearest even \n");
 #endif
 
 #else
-  printf("Testing double precision \n");
+  fprintf(fptr,"Testing double precision \n");
 #endif
   return 0;
 }
