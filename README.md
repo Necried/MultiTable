@@ -114,3 +114,32 @@ These functions will call the associated `three_table_procedure` that lives in t
 hence the nested Make calls.
 The refinement method is not particularly important, but they demonstrate that the results produced
 by the three-table method can be further refined to other precisions.
+
+### Utility Files
+
+Each subdirectory of the function of interest contain additional C files, with similar structure as below:
+
+```
+.
+├── dtof_nearest.c
+├── dtof_ninf.c
+├── dtof_pinf.c
+├── dtof_zero.c
+├── float_utils.c
+├── recip.c
+└── test.c
+```
+
+The functionality of each file is as follows:
+
+- `dtof_*.c` Rounding functions for each IEEE rounding mode. 
+   This is used to convert double to single precision results. 
+   The rounding mode is set to round-to-nearest by default (provided by `dtof_nearest.c`).
+- `float_utils.c` contain utility functions for computing ulp errors and 
+   converting between fixed-point and floating-point representations.
+- `test.c` contains the main function for testing the implementation (here the implementation is in `recip.c`).
+   It produces log files and reports on the ulp error interval.
+
+Additionally, each subdirectory contains a `float_utils.h` file containing macro definitions of constants that
+are used by the implementation, such as the fixed-point precision, the table sizes and bit widths of interest
+(such as the length of the most significant bits used for table lookups).
