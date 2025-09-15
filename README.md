@@ -1,7 +1,7 @@
 # Artifact for A Multi-Table Approach to Floating-Point Function Approximation (CASCON 2025 Technical Paper Track)
 
 This artifact supports the results and claims in the CASCON 2025 paper titled "A Multi-Table Approach to Floating-Point Function Approximation" (Short Technical Paper).
-
+The paper can be found in this repository [here](./papers/multi-table-short-version.pdf).
 
 ## Contents
 - `src/`: Contains two directories `Single/` and `Double/`, for single-precision and double-precision `recip`, `sqrt` and `rsqrt`.
@@ -44,17 +44,17 @@ Ulp error interval:
 
 In the `log` directory, open the associated log file for a given function and precision.
 
-#### Single
+### Single
 
 There are two parts in the log output:
 1. Detailed output for each interval, including values that produced the highest ulp error.
 2. Summary histogram outlining ulp errors.
 
-#### Double
+### Double
 
 The log file has the same structure as single-precision, but does not have detailed output as we performed random testing instead of exhaustive testing.
 
-#### Histogram
+### Histogram
 
 An example of the histogram output taken from `recip_sp.log`:
 
@@ -79,3 +79,38 @@ Number of test 8388608
 From these, we see that the highest ulp errors are in `(2, 5]`. 
 The detailed output above in the log file states that this has maximum ulp error of 3,
 which lies in this interval.
+
+### Implementation
+
+The main implementation is given in the directory tree structure below:
+
+```
+.
+└── src
+    ├── Double
+    │   ├── RSqrt
+    │   │   └── rsqrt_dp.c
+    │   ├── Recip
+    │   │   └── recip_dp.c
+    │   └── Sqrt
+    │       └── sqrt_dp.c
+    └── Single
+        ├── RSqrt
+        │   └── rsqrt.c
+        ├── Recip
+        │   └── recip.c
+        └── Sqrt
+            └── sqrt.c
+```
+
+(This can be generated using the linux command `tree -L 4 -P "*.c" -I "dtof*|*utils.c|test.c"`)
+
+For the C files under `Single`, the function to look at is `three_table_procedure`. 
+This closely follows the description in the paper; variables mostly follow the convention used in
+the paper.
+
+For the C files under `Double`, the function to look at is `calculate_ytest_dp_newton`.
+These functions will call the associated `three_table_procedure` that lives in the `Single` directory,
+hence the nested Make calls.
+The refinement method is not particularly important, but they demonstrate that the results produced
+by the three-table method can be further refined to other precisions.
