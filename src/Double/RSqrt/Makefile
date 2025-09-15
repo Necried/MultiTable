@@ -1,6 +1,6 @@
 CC      = clang
 CFLAGS  = -Wall -Wextra -g \
-           -DTABLE -DTESTCOUNT=2 -DFRACTTABLE=25 -DFRACBITS=58 \
+           -DTABLE -DTESTCOUNT=8388608 -DFRACTTABLE=25 -DFRACBITS=58 \
 					 -DDEBUG \
            -I../../Single/RSqrt
 LDFLAGS = -L../../Single/RSqrt -lrsqrt_sp -lm

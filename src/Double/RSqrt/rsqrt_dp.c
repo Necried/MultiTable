@@ -42,6 +42,7 @@ double calculate_ytest_dp_newton(unsigned __int128 a, __uint64_t *sqrtTable,
   unsigned __int128 x2_rsqrt_inner = (three_over_two - half_ax1_squared) >> fracBits;
   unsigned __int128 x2_rsqrt = big_mult(x1_rsqrt, x2_rsqrt_inner);
 
+  /*
   DEBUG_PRINT(("%-20s: %016llx %016llx\n",
 	   "leading_one", FORMAT_UINT128(leading_one)));
   DEBUG_PRINT(("%-20s: %016llx %016llx %10.16f\n",
@@ -58,11 +59,13 @@ double calculate_ytest_dp_newton(unsigned __int128 a, __uint64_t *sqrtTable,
 	   "x1_rsqrt_inner", FORMAT_UINT128(x1_rsqrt_inner), mantissa_to_double(x1_rsqrt_inner)));
   DEBUG_PRINT(("%-20s: %016llx %016llx %10.16f\n",
 	   "x1_rsqrt", FORMAT_UINT128(x1_rsqrt), mantissa_to_double(x1_rsqrt)));
-
+  DEBUG_PRINT(("%-20s: %016llx %016llx %10.16f\n",
+	   "x2_rsqrt", FORMAT_UINT128(x1_rsqrt), mantissa_to_double(x2_rsqrt)));
+  */
   return mantissa_to_double(x2_rsqrt);
 }
 
 double calculate_ytrue_dp(unsigned __int128 x){
   // printf("true: %lf\n", 1/(mantissa_to_double(x)));
-  return 1/(mantissa_to_double(x));
+  return 1/(sqrt(mantissa_to_double(x)));
 }

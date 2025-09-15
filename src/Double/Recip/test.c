@@ -25,15 +25,15 @@ double gen_random_double_1_2() {
   unsigned long long leadingOne = ((1ull << 10) - 1) << 52;
 
   val.ull = leadingOne + top31 + bot21;
-  // printf("top31 0x%llx   bot21 0x%llx\nleadingOne 0x%llx   val.ull 0x%llx\n",top31,bot21,leadingOne,val.ull);
-  // printf("Generated double: %10.10f\n", val.d);
+  // fprintf(fptr,"top31 0x%llx   bot21 0x%llx\nleadingOne 0x%llx   val.ull 0x%llx\n",top31,bot21,leadingOne,val.ull);
+  // fprintf(fptr,"Generated double: %10.10f\n", val.d);
   assert(1 <= val.d && val.d < 2);
 
   return val.d;
 }
 
 void test_rand_doubles(unsigned int seed, int ontests, __uint64_t *T_Table,
-          __uint64_t *S_Table, __uint8_t *A_Table) {
+          __uint64_t *S_Table, __uint8_t *A_Table, FILE *fptr) {
   // Initialize historgram vars
   long long n_ulp_05      = 0;
   long long n_ulp_1       = 0;
@@ -115,54 +115,61 @@ void test_rand_doubles(unsigned int seed, int ontests, __uint64_t *T_Table,
     }
   }
 
-  printf (" == ieeemant ==       == x ==   == frac ==      ========== ytest =========   ========= ytrue ========     ulps\n");
-  printf("Max \n");
+  fprintf(fptr," == ieeemant ==       == x ==   == frac ==      ========== ytest =========   ========= ytrue ========     ulps\n");
+  fprintf(fptr,"Max \n");
 
-  printf ("%10.16f %10.2e %08llX %10.2e %016llX %10.2e %016llX %10.2e\n",
+  fprintf(fptr,"%10.16f %10.2e %08llX %10.2e %016llX %10.2e %016llX %10.2e\n",
 	  omaxieee,
 	  mantissa_to_double(omaxx), (unsigned long long)omaxx,
 	  omaxytest.d, omaxytest.ull,
 	  omaxytrue.d, omaxytrue.ull,
 	  omaxulperr);
 
-  printf("Min \n");
+  fprintf(fptr,"Min \n");
 
-  printf ("%10.16f %10.2e %08llX %10.2e %016llX %10.2e %016llX %10.2e\n",
+  fprintf(fptr,"%10.16f %10.2e %08llX %10.2e %016llX %10.2e %016llX %10.2e\n",
 	  ominieee,
 	  mantissa_to_double(ominx), (unsigned long long)ominx,
 	  ominytest.d, ominytest.ull,
 	  ominytrue.d, ominytrue.ull,
 	  ominulperr);
-  printf("\n");
+  fprintf(fptr,"\n");
 
-  printf("\n");
-  printf("Number of test %d\n",ontests);
-  printf ("===neg to pos===     ===count===  =====absolute===== \n");
-  printf ("[-inf,-10) %6.2f%%  %10lld\n", 100.0*n_ulp_n10down/ontests,n_ulp_n10down);
-  printf ("  [-10,-5) %6.2f%%  %10lld\n", 100.0*n_ulp_n10/ontests,n_ulp_n10);
-  printf ("   [-5,-2) %6.2f%%  %10lld\n", 100.0*n_ulp_n5/ontests,n_ulp_n5);
-  printf ("   [-2,-1) %6.2f%%  %10lld\n", 100.0*n_ulp_n2/ontests,n_ulp_n2);
-  printf (" [-1,-0.5) %6.2f%%  %10lld\n", 100.0*n_ulp_n1/ontests,n_ulp_n1);
-  printf ("  (-0.5,0] %6.2f%%  %10lld\n", 100.0*n_ulp_n05/ontests,n_ulp_n05);
-  printf ("   (0,0.5] %6.2f%%  %10lld     [0,0.5] %6.2f%%\n", 100.0*n_ulp_05/ontests
+  fprintf(fptr,"\n");
+  fprintf(fptr,"Number of test %d\n",ontests);
+  fprintf(fptr,"===neg to pos===     ===count===  =====absolute===== \n");
+  fprintf(fptr,"[-inf,-10) %6.2f%%  %10lld\n", 100.0*n_ulp_n10down/ontests,n_ulp_n10down);
+  fprintf(fptr,"  [-10,-5) %6.2f%%  %10lld\n", 100.0*n_ulp_n10/ontests,n_ulp_n10);
+  fprintf(fptr,"   [-5,-2) %6.2f%%  %10lld\n", 100.0*n_ulp_n5/ontests,n_ulp_n5);
+  fprintf(fptr,"   [-2,-1) %6.2f%%  %10lld\n", 100.0*n_ulp_n2/ontests,n_ulp_n2);
+  fprintf(fptr," [-1,-0.5) %6.2f%%  %10lld\n", 100.0*n_ulp_n1/ontests,n_ulp_n1);
+  fprintf(fptr,"  (-0.5,0] %6.2f%%  %10lld\n", 100.0*n_ulp_n05/ontests,n_ulp_n05);
+  fprintf(fptr,"   (0,0.5] %6.2f%%  %10lld     [0,0.5] %6.2f%%\n", 100.0*n_ulp_05/ontests
 						 ,n_ulp_05
 						 , 100.0*(n_ulp_05+n_ulp_n05)/ontests );
-  printf ("   (0.5,1] %6.2f%%  %10lld     (0.5,1] %6.2f%%\n", 100.0*n_ulp_1/ontests
+  fprintf(fptr,"   (0.5,1] %6.2f%%  %10lld     (0.5,1] %6.2f%%\n", 100.0*n_ulp_1/ontests
 						 ,n_ulp_1
 						 , 100.0*(n_ulp_1+n_ulp_n1)/ontests);
-  printf ("     (1,2] %6.2f%%  %10lld       (1,2] %6.2f%%\n", 100.0*n_ulp_2/ontests
+  fprintf(fptr,"     (1,2] %6.2f%%  %10lld       (1,2] %6.2f%%\n", 100.0*n_ulp_2/ontests
 						 ,n_ulp_2
 						 , 100.0*(n_ulp_2+n_ulp_n2)/ontests);
-  printf ("     (2,5] %6.2f%%  %10lld       (2,5] %6.2f%%\n", 100.0*n_ulp_5/ontests
+  fprintf(fptr,"     (2,5] %6.2f%%  %10lld       (2,5] %6.2f%%\n", 100.0*n_ulp_5/ontests
 						 ,n_ulp_5
 						 , 100.0*(n_ulp_5+n_ulp_n5)/ontests);
-  printf ("    (5,10] %6.2f%%  %10lld      (5,10] %6.2f%%\n", 100.0*n_ulp_10/ontests
+  fprintf(fptr,"    (5,10] %6.2f%%  %10lld      (5,10] %6.2f%%\n", 100.0*n_ulp_10/ontests
 						 ,n_ulp_10
 						 , 100.0*(n_ulp_10+n_ulp_n10)/ontests);
-  printf ("  (10,inf] %6.2f%%  %10lld    (10,inf] %6.2f%%\n", 100.0*n_ulp_10up/ontests
+  fprintf(fptr,"  (10,inf] %6.2f%%  %10lld    (10,inf] %6.2f%%\n", 100.0*n_ulp_10up/ontests
 						 ,n_ulp_10up
 						 , 100.0*(n_ulp_10up+n_ulp_n10down)/ontests);
-  printf ("\n");
+  fprintf(fptr,"\n");
+
+  printf("\n===================================================\n");
+  printf("RECIP DOUBLE PRECISION LOG REPORT:\n");
+  printf("Results for recip double precision recorded in:\n\tlog/recip_dp.log\n");
+  printf("Ulp error interval:\n\t [%.5f, %.5f]\n", ominulperr, omaxulperr);
+  printf("===================================================\n\n");
+  sleep(2);
 }
 
 int main() {
@@ -170,9 +177,12 @@ int main() {
   __uint64_t S_Table[RECIP_TABLE_SIZE];
   __uint64_t *qTable;
   __uint8_t A_Table[ATableSize];
+  FILE *fptr;
+
+  fptr = fopen("../../../log/recip_dp.log", "w");
 
   // Allocate heap space for qTable
-  printf("QTableSize: %d\n", QTableSize);
+  fprintf(fptr,"QTableSize: %d\n", QTableSize);
   qTable = malloc(sizeof(__uint64_t) * QTableSize);
 
   makeTTable(T_Table);
@@ -182,15 +192,15 @@ int main() {
   
   // Seed random test
   time_t seed = time(NULL);
-  printf("Seed: %ld\n", seed);
+  fprintf(fptr,"Seed: %ld\n", seed);
 
-  test_rand_doubles(seed, test_count, T_Table, S_Table, A_Table);
+  test_rand_doubles(seed, test_count, T_Table, S_Table, A_Table, fptr);
 
-  printf("Testing sign 1 bits, exp 8 bits, significand %d bits \n", fracBits);
-  printf("Testing reciprocal table : %d bits table, size %d \n", fracBitsTable,
+  fprintf(fptr,"Testing sign 1 bits, exp 8 bits, significand %d bits \n", fracBits);
+  fprintf(fptr,"Testing reciprocal table : %d bits table, size %d \n", fracBitsTable,
          RECIP_TABLE_SIZE);
-  printf("Testing input(highf) %d bits \n", highf);
-  printf("Testing lowu %d bits \n", lowu);
+  fprintf(fptr,"Testing input(highf) %d bits \n", highf);
+  fprintf(fptr,"Testing lowu %d bits \n", lowu);
 
   free(qTable);
   return 0;
