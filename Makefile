@@ -6,7 +6,7 @@ DOUBLE_DIRS := src/Double/Recip src/Double/Sqrt src/Double/RSqrt
 all: setup test clean
 
 setup:
-	mkdir log
+	mkdir -p log
 
 single:
 	@for dir in $(SINGLE_DIRS); do \
