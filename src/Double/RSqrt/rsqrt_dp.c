@@ -8,10 +8,9 @@
 #include "float_utils.h"
 #include "utils.h"
 
-// The Newton method for square root is
+// The Newton method for rsqrt is
 // y_n+1 = y_n * (3/2 - 1/2 * ay_n^2)
-// The above equation computes sqrt
-// To obtain sqrt: sqrt(a) = a * y
+// Calculates two iteration of Newton-Rhapson after the initial three-table method.
 double calculate_ytest_dp_newton(unsigned __int128 a, __uint64_t *sqrtTable,
                        __uint64_t *linearTable, __uint8_t *aTable) {
   const unsigned __int128 leading_one = 1ull << fracBits;

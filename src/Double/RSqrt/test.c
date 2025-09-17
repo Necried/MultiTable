@@ -5,6 +5,7 @@
 #include <string.h>
 #include <sys/resource.h> // Check available stack space
 #include <time.h>
+#include <unistd.h>
 
 #include "dtof_rounding.h"
 #include "float_defs.h"
@@ -202,7 +203,7 @@ int main() {
   fprintf(fptr, "Testing rsqrt table : %d bits table, size %d \n", fracBitsTable,
          RSQRT_TABLE_SIZE);
   fprintf(fptr, "Testing input(highf) %d bits \n", highf);
-  fprintf(fptr, "Testing lowu %d bits \n", lowu);
+  fprintf(fptr, "Testing lowu %llu bits \n", lowu);
 
   free(qTable);
   return 0;

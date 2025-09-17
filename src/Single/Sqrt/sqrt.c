@@ -1,11 +1,3 @@
-//
-//  main.c
-//  DeepFractions
-//
-//  Created by Christopher Kumar Anand on 2021-01-27.
-//
-
-
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -16,8 +8,8 @@
 #include "float_utils.h"
 #include "sqrt.h"
 
-// RECIP_TABLE_SIZE is (256)
-// table makePosRecipTable with imply bits
+// The T-Table generation uses round values of the function of interest
+// This is the `inv` variable.
 void makeTTable(__uint64_t *table) {
   int i;
   for (i = 0; i < SQRT_TABLE_SIZE / 2; i++) {
@@ -47,7 +39,8 @@ void makeTTable(__uint64_t *table) {
   }
 }
 
-// slope
+// The S-Table generation uses adjacent values in the T-Table.
+// This assumes `makeTTable` is called first.
 void makeSTable(__uint64_t *table, __uint64_t *sqrtable) {
 
   table[0] = (sqrtable[1]) - (sqrtable[0]);
@@ -58,13 +51,9 @@ void makeSTable(__uint64_t *table, __uint64_t *sqrtable) {
       ((1ull << (fracBits + 1)) - ((sqrtable[(SQRT_TABLE_SIZE - 1)])));
 }
 
-/*  bit values
-    <sign> (2^31) <exp> (2^30)..(2^23) <also implied 1 bit> (2^23) <fraction>
-   (2^22)...(2^2)(2=2^1)(1=2^0) if exp=0, interval [1,2) (1/2=2^{-1})  ...
-   (2^{-23}) (2^(-23)*2^(-23) = 2^(-46) place value for ulp after multiply)
-    after multiply, the place values are
-    t2 <carry>(2^0)(2^(-1))(2^(-2))...(2^(-23))...(2^(-46))
- */
+// This is a legacy function that calculates an approximation
+// with just the T-Table and S-Table.
+// This is used for the generation of the A-Table.
 unsigned __int128 approxSqrtLinear(unsigned __int128 x, __uint64_t *T_Table,
                                    __uint64_t *S_Table) {
   __uint64_t leadingBit = ((1ull << (fracBits + 1)) & x) == 0 ? 0 : 1;
@@ -89,19 +78,12 @@ unsigned __int128 approxSqrtLinear(unsigned __int128 x, __uint64_t *T_Table,
   l = tableSignificand; // 50
   l += (S_Tableslope * lowBits) >> newLowu;
 
-  // printf("approxRecipLiner \n");
-  // printf("x 0x%016llx %016llx idx %d lowBits 0x%016llx l 0x%016llx 0x%016llx
-  // tableSignificand 0x%016llx tableSignificand(from approxRecip) 0x%016llx
-  // S_Tableslope 0x%016llx \n",(__uint64_t)(x>>64),(unsigned long
-  // long)x,idx,(__uint64_t)lowBits,(__uint64_t)
-  // (l>>64),(__uint64_t) (l),(__uint64_t)
-  // (tableSignificand),recipTable[idx],S_Tableslope);
-
-  // printf("in function approxRecipLiner %10.16f %016llx
-  // \n",mantissa_to_double(l),l);
   return l;
 }
 
+// The Q-Table is generated via a table search method.
+// For each subinterval, we take the worst-case correction value
+// of `approxRecipLinear`.
 void makeQTable(__uint64_t *table, __uint64_t *T_Table,
                 __uint64_t *S_Table) {
   // input x
@@ -131,11 +113,6 @@ void makeQTable(__uint64_t *table, __uint64_t *T_Table,
         long long tmpR = result;
         result = x == x1 ? /*init result*/ sub : (result > sub ? sub : result);
 
-        if (tmpR != result) {
-          // printf("x %16.16f l_double %16.16f inv %16.16f before floor %10.10f
-          // sub %d result %d %016x\n",x,l_double,inv,(l_double - inv) *
-          // pow(2,23),sub,result,result);
-        }
       } // end of x
 
       table[count] = result;
@@ -166,30 +143,16 @@ void makeQTable(__uint64_t *table, __uint64_t *T_Table,
         long long tmpR = result;
         result = x == x1 ? /*init result*/ sub : (result > sub ? sub : result);
 
-        if (tmpR != result) {
-          // printf("x %16.16f l_double %16.16f inv %16.16f before floor %10.10f
-          // sub %d result %d %016x\n",x,l_double,inv,(l_double - inv) *
-          // pow(2,23),sub,result,result);
-        }
       } // end of x
 
       table[count] = result;
       count++;
     } // end of alpha
   }   // end of id
-  count = 0;
-  // printf("make q table \n");
-  for (int id = 0; id < SQRT_TABLE_SIZE; id++) {
-    for (int alpha = 0; alpha < pow(2, qTableBit); alpha += 1) {
-      // printf ("(%i , %016llx)\n",alpha,table[count]);
-
-      count++;
-    }
-    // printf("\n");
-  }
-  // exit (0);
 }
 
+// The A-Table is a subset of the Q-Table, and the entirety of the
+// Q-Table can be restored via the bit-complement trick described in the paper.
 void makeATable(__uint8_t *table, __uint64_t *qTable) {
   for (int i = 0; i < SQRT_TABLE_SIZE; i++) {
     int qTableIdx = ((1ull << qTableBit) / 2) + (i * (1ull << qTableBit));
@@ -197,6 +160,8 @@ void makeATable(__uint8_t *table, __uint64_t *qTable) {
   }
 }
 
+// The main three-table method, which assumes that the T, S, and A-Table
+// are generated.
 unsigned __int128 three_table_procedure(unsigned __int128 x,
                                         __uint64_t *T_Table,
                                         __uint64_t *S_Table,

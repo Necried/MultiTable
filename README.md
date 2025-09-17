@@ -4,7 +4,7 @@ This artifact supports the results and claims in the CASCON 2025 paper titled "A
 The paper can be found in this repository [here](./papers/multi-table-short-version.pdf).
 
 ## Contents
-- `src/`: Contains two directories `Single/` and `Double/`, for single-precision and double-precision `recip`, `sqrt` and `rsqrt`.
+- `src/`: Contains two directories `Single/` and `Double/`, for single-precision `recip`, `sqrt` and `rsqrt`, and double-precision `recip` and `rsqrt`.
 - `Makefile` that executes and reports all tests for the single and double-precision functions.
 
 ## Requirements
@@ -90,10 +90,8 @@ The main implementation is given in the directory tree structure below:
     ├── Double
     │   ├── RSqrt
     │   │   └── rsqrt_dp.c
-    │   ├── Recip
-    │   │   └── recip_dp.c
-    │   └── Sqrt
-    │       └── sqrt_dp.c
+    │   └── Recip
+    │       └── recip_dp.c
     └── Single
         ├── RSqrt
         │   └── rsqrt.c

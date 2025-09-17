@@ -5,6 +5,7 @@
 #include <string.h>
 #include <sys/resource.h> // Check available stack space
 #include <time.h>
+#include <unistd.h>
 
 #include "dtof_rounding.h"
 #include "float_defs.h"

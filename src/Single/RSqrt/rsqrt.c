@@ -9,6 +9,8 @@
 #include "float_utils.h"
 #include "rsqrt.h"
 
+// The T-Table generation uses round values of the function of interest
+// This is the `rsqrtx` variable.
 void makeTTable(__uint64_t* table) {
   int i;
   for (i=0;i<RSQRT_TABLE_SIZE/2;i++) {
@@ -27,6 +29,8 @@ void makeTTable(__uint64_t* table) {
   }
 }
 
+// The S-Table generation uses adjacent values in the T-Table.
+// This assumes `makeTTable` is called first.
 void makeSTable(__uint64_t* table, __uint64_t* T_Table) {
 
   table[0] = ((T_Table[0])
@@ -39,7 +43,9 @@ void makeSTable(__uint64_t* table, __uint64_t* T_Table) {
       - ((1ull<<(fracBits-1))));
 }
 
-
+// This is a legacy function that calculates an approximation
+// with just the T-Table and S-Table.
+// This is used for the generation of the A-Table.
 unsigned __int128 approxRSqrtLinear(unsigned __int128 x, __uint64_t* T_Table, __uint64_t* S_Table) {
     __uint64_t leadingBit = ((1ull << (fracBits+1)) & x) == 0 ? 0 : 1;
     __uint64_t newLowu = leadingBit == 0 ? lowu : lowu + 1;
@@ -67,6 +73,9 @@ unsigned __int128 approxRSqrtLinear(unsigned __int128 x, __uint64_t* T_Table, __
     return l;
 }
 
+// The Q-Table is generated via a table search method.
+// For each subinterval, we take the worst-case correction value
+// of `approxRecipLinear`.
 void makeQTable (__uint64_t* table, __uint64_t* T_Table, __uint64_t* S_Table){
   // input x
   // oneOverSize = 1 / 256
@@ -152,6 +161,8 @@ void makeQTable (__uint64_t* table, __uint64_t* T_Table, __uint64_t* S_Table){
   */
 }
 
+// The A-Table is a subset of the Q-Table, and the entirety of the
+// Q-Table can be restored via the bit-complement trick described in the paper.
 void makeATable(__uint8_t *table, __uint64_t *qTable) {
   for (int i = 0; i < RSQRT_TABLE_SIZE; i++) {
     int qTableIdx = ((1ull << qTableBit) / 2) + (i * (1ull << qTableBit));
@@ -159,6 +170,8 @@ void makeATable(__uint8_t *table, __uint64_t *qTable) {
   }
 }
 
+// The main three-table method, which assumes that the T, S, and A-Table
+// are generated.
 unsigned __int128 three_table_procedure(unsigned __int128 x,
                                         __uint64_t *T_Table,
                                         __uint64_t *S_Table,

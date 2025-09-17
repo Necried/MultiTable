@@ -1,7 +1,7 @@
 .PHONY: all clean single double test
 
 SINGLE_DIRS := src/Single/Recip src/Single/Sqrt src/Single/RSqrt
-DOUBLE_DIRS := src/Double/Recip src/Double/Sqrt src/Double/RSqrt
+DOUBLE_DIRS := src/Double/Recip src/Double/RSqrt
 
 all: setup test clean
 

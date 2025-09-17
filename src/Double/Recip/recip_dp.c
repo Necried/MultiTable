@@ -8,11 +8,12 @@
 #include "float_utils.h"
 #include "utils.h"
 
+// The Newton method for recip is
+// y_n+1 = y_n * (2 - a*y_n)
+// Calculates two iteration of Newton-Rhapson after the initial three-table method.
 double calculate_ytest_dp_newton(unsigned __int128 a, __uint64_t *recipTable,
                        __uint64_t *linearTable, __uint8_t *aTable) {
-  const unsigned __int128 leading_one = 1ull << fracBits;
-
-  // The table lookup value is y0
+  // The table lookup value is x0
   unsigned __int128 a_aligned = a >> (fracBits-31);
   unsigned __int128 x0 = three_table_procedure(a_aligned, recipTable, linearTable, aTable) << (fracBits-31);
 
